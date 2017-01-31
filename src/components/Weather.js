@@ -64,7 +64,10 @@ export default class Weather extends Component {
     return (
       !showSpinner
         ? <div className="wrap__content">
-            <span className="wrap__content-title">Today's Weather</span>
+            <span className="wrap__content-title">About author</span>
+        <div className="weather__temp">
+          <span>Temperature:</span> {temp_min - kelvins}&#8451; ~ {temp_max - kelvins}&#8451;
+        </div>
             <div className="wrap__content-weather">
               {
                 showError &&
@@ -73,26 +76,11 @@ export default class Weather extends Component {
                 </div>
               }
               <div className="wrap__content-weather-selects">
-                <form action="#">
-                  <label htmlFor="city">
-                    City:
-                    <input type="text" id="city" value={city} onChange={this.handleCityChange}/>
-                  </label>
-                  <label htmlFor="country">
-                    Country:
-                    <input type="text" id="country" value={country}  onChange={this.handleCountryChange}/>
-                  </label>
-                  <button onClick={this.doSearch}>
-                    Search
-                  </button>
-                </form>
+
               </div>
               <div className="wrap__content-weather-info weather">
                 <span className={classNames('weather__img', weatherIconClass)} />
-                <div className="weather__info">
-                  <h3>{weatherLabel}</h3>
-                  <span>{weatherDescription}</span>
-                </div>
+
                 <div className="weather__temp">
                   <span>Temperature:</span> {temp_min - kelvins}&#8451; ~ {temp_max - kelvins}&#8451;
                 </div>

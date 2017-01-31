@@ -14,21 +14,27 @@ export default class App extends Component {
     return (
       <div className="wrap">
         <ul className="wrap__nav">
+          <li className={classNames({active: pathname.endsWith('Map')})}>
+            <Link to="map">
+              Main Page
+            </Link>
+          </li>
           <li className={classNames({active: pathname.endsWith('Chart')})}>
             <Link to="chart">
-              Data Analysis
+              Sigh in
             </Link>
           </li>
           <li className={classNames({active: pathname.endsWith('Weather')})}>
             <Link to="weather">
-              Today's Weather
+              About Author
             </Link>
           </li>
-           <li className={classNames({active: pathname.endsWith('Map')})}>
-              <Link to="map">
-                Your Map
-              </Link>
-           </li>
+          <li className={classNames({active: pathname.endsWith('AboutAuthor')})}>
+            <Link to="aboutauthor">
+              AboutAuthor
+            </Link>
+          </li>
+           
         </ul>
         {this.props.children}
       </div>

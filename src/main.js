@@ -8,7 +8,9 @@ import {
   App,
   Chart,
   Weather,
-  Map
+  Map,
+  AboutAuthor
+
 } from './components'
 
 renderComponent(
@@ -17,6 +19,7 @@ renderComponent(
       <Route path='chart' component={Chart} />
       <Route path='map' component={Map}/>
       <Route path='weather' component={Weather} />
+      <Route path='aboutauthor' component={AboutAuthor} />
     </Route>
   </Router>,
   document.getElementById('app')

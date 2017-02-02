@@ -8,10 +8,8 @@ import {
   App,
   Chart,
   Weather,
-  Map,
-  AboutAuthor
-
-} from './components'
+  Map
+  } from './components'
 
 renderComponent(
   <Router history={browserHistory}>
@@ -19,7 +17,6 @@ renderComponent(
       <Route path='chart' component={Chart} />
       <Route path='map' component={Map}/>
       <Route path='weather' component={Weather} />
-      <Route path='aboutauthor' component={AboutAuthor} />
     </Route>
   </Router>,
   document.getElementById('app')

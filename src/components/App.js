@@ -29,12 +29,7 @@ export default class App extends Component {
               About Author
             </Link>
           </li>
-          <li className={classNames({active: pathname.endsWith('AboutAuthor')})}>
-            <Link to="aboutauthor">
-              AboutAuthor
-            </Link>
-          </li>
-           
+
         </ul>
         {this.props.children}
       </div>

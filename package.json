@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node run",
-    "dev": "webpack && webpack-dev-server --inline --port 4000 --host 0.0.0.0"
+    "dev": "webpack && webpack-dev-server --inline --port 3000 --host 0.0.0.0"
   },
   "dependencies": {
     "autoprefixer": "^6.3.7",
@@ -22,6 +22,7 @@
     "react": "^15.2.1",
     "react-chartjs": "^0.8.0",
     "react-dom": "^15.2.1",
+    "react-google-login-component": "^0.5.2",
     "react-google-maps": "^6.0.1",
     "react-router": "^2.4.1",
     "resolve-url-loader": "^1.6.0",

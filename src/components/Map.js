@@ -14,10 +14,9 @@ const geolocation = (
 const StartedGoogleMap = withGoogleMap(props => (
   <GoogleMap
     ref={props.onMapLoad}
-    defaultZoom={12}
     center={props.center}
     onClick={props.onMapClick}
-    //zoom={props.ZoomBottons}
+    zoom={props.zoom}
   >
 
     {props.center && (
@@ -39,14 +38,16 @@ const StartedGoogleMap = withGoogleMap(props => (
       />
     )}
 
-    {props.markers.map(marker =>(
+    {props.markers.map((marker, index) =>(
       <Marker
+        key={index}
         {...marker}
         onRightClick={() => props.onMarkerRightClick(marker)}
       />
     ))}
   </GoogleMap>
 ));
+
 
 export default class Map extends Component {
   constructor (props) {
@@ -55,6 +56,7 @@ export default class Map extends Component {
     this.isUnmounted = false;
 
     this.state = {
+      zoom: 12,
       center: null,
       content: null,
       radius: 50,
@@ -63,22 +65,38 @@ export default class Map extends Component {
           lat: 46.4825,
           lng: 30.7233
         },
-        key: 'Odessa',
         defaultAnimation: 2
       }]
+    };
+
+    this.request = {
+      location: null,
+      radius: '500',
+      type: null
     };
 
     this.handleMapLoad = this.handleMapLoad.bind(this);
     this.handleMapClick = this.handleMapClick.bind(this);
     this.handleMarkerRightClick = this.handleMarkerRightClick.bind(this);
+    this.zoomButtonIn = this.zoomButtonIn.bind(this);
+    this.zoomButtonOut = this.zoomButtonOut.bind(this);
+    this.schoolButton = this.schoolButton.bind(this);
+    this.pharmacyButton = this.pharmacyButton.bind(this);
+    this.restaurantButton = this.restaurantButton.bind(this);
+    this.callback = this.callback.bind(this);
   }
-
 
   componentDidMount() {
     geolocation.getCurrentPosition((position) => {
       if (this.isUnmounted) {
         return;
       }
+
+      this.request.location = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+
       this.setState({
         center: {
           lat: position.coords.latitude,
@@ -86,6 +104,7 @@ export default class Map extends Component {
         },
         content: 'I found you!'
       });
+
     }, (reason) => {
       if (this.isUnmounted) {
         return;
@@ -100,26 +119,44 @@ export default class Map extends Component {
     });
   }
 
-
   componentWillUnmount() {
     this.isUnmounted=true;
   }
 
   handleMapLoad(map) {
     this._mapComponent = map;
+    //console.log(map);
+    this.service = new google.maps.places.PlacesService(document.createElement('div'));
     if (map) {
       console.log(map.getZoom());
     }
   }
 
+  callback (results, status) {
+    const places =[];
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+      for (let i = 0; i < results.length; i++) {
+        places.push(      {
+          position: {
+            lat: results[i].geometry.location.lat(),
+            lng: results[i].geometry.location.lng()
+          },
+          defaultAnimation: 2
+        })
+
+      }
+      this.setState({
+        markers: places
+      });
+    }
+  }
 
   handleMapClick(event) {
     const nextMarkers = [
       ...this.state.markers,
       {
         position: event.latLng,
-        defaultAnimation: 2,
-        key: Date.now()
+        defaultAnimation: 2
       }
     ];
     this.setState({
@@ -135,15 +172,51 @@ export default class Map extends Component {
     });
   }
 
+  zoomButtonOut() {
+    this.setState({
+      zoom: this.state.zoom - 2
+    });
+  }
+
+  zoomButtonIn() {
+    this.setState({
+      zoom: this.state.zoom + 2
+    });
+  }
+
+  pharmacyButton() {
+    this.request.type = ['pharmacy'];
+    this.service.nearbySearch(this.request, this.callback);
+  }
+
+  schoolButton() {
+    this.request.type = ['school'];
+    this.service.nearbySearch(this.request, this.callback);
+  }
+
+  restaurantButton() {
+    this.request.type = ['restaurant'];
+    this.service.nearbySearch(this.request, this.callback);
+  }
+
   render() {
     return (
       <div className="wrap__content" style={{ height: `700px`,  width: `1000px` }}>
         <span className="wrap__content-title">Map</span>
-        <button onClick={this.zoomButtons}>
+        <button onClick={this.zoomButtonOut}>
           Zoom out
         </button>
-        <button onClick={this.zoomButtons}>
+        <button onClick={this.zoomButtonIn}>
           Zoom in
+        </button>
+        <button onClick={this.pharmacyButton}>
+          Near pharmacies
+        </button>
+        <button onClick={this.schoolButton}>
+          Near schools
+        </button>
+        <button onClick={this.restaurantButton}>
+          Near restaurants
         </button>
         <StartedGoogleMap
           containerElement={
@@ -152,7 +225,7 @@ export default class Map extends Component {
           mapElement={
             <div style={{height: '100%'}} />
           }
-          zoomButtons={this.state.zoomButtons}
+          zoom={this.state.zoom}
           center={this.state.center}
           content={this.state.content}
           radius={this.state.radius}

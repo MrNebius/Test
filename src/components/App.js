@@ -19,9 +19,9 @@ export default class App extends Component {
               Main Page
             </Link>
           </li>
-          <li className={classNames({active: pathname.endsWith('Chart')})}>
-            <Link to="chart">
-              Sigh in
+          <li className={classNames({active: pathname.endsWith('Authorization')})}>
+            <Link to="authorization">
+              Authorization
             </Link>
           </li>
           <li className={classNames({active: pathname.endsWith('Weather')})}>

@@ -1,4 +1,4 @@
 export App from './App'
-export Chart from './Chart'
+export Authorization from './Authorization'
 export Weather  from './Weather'
 export Map from './Map'

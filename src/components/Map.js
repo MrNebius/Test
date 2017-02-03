@@ -56,16 +56,16 @@ export default class Map extends Component {
     this.isUnmounted = false;
 
     this.state = {
-      zoom: 12,
+      zoom: null,
       center: null,
       content: null,
-      radius: 50,
+      radius: 100,
       markers: [{
         position: {
           lat: 46.4825,
           lng: 30.7233
         },
-        defaultAnimation: 2
+        defaultAnimation: 2,
       }]
     };
 
@@ -98,6 +98,7 @@ export default class Map extends Component {
       };
 
       this.setState({
+        zoom: 16,
         center: {
           lat: position.coords.latitude,
           lng: position.coords.longitude
@@ -110,6 +111,7 @@ export default class Map extends Component {
         return;
       }
       this.setState({
+        zoom: 10,
         center: {
           lat: 46.4825,
           lng: 30.7233
@@ -141,7 +143,11 @@ export default class Map extends Component {
             lat: results[i].geometry.location.lat(),
             lng: results[i].geometry.location.lng()
           },
-          defaultAnimation: 2
+          defaultAnimation: 2,
+          icon: {
+            url: results[i].icon,
+            scaledSize: new google.maps.Size(25, 25)
+          }
         })
 
       }

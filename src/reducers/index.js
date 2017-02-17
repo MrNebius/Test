@@ -1,3 +1,1 @@
-/**
- * Created by doit on 16.02.17.
- */
+export user from './user'

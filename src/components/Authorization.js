@@ -1,85 +1,69 @@
-
-import React, { Component, PropTypes } from 'react'
-
+import React, { Component } from 'react'
+import { connect } from 'react-redux'
+import { authUser, createNewUser, logout} from '../actions'
 const request = require('superagent');
 
-export default class Authorization extends Component {
+class Authorization extends Component {
 
-  constructor (props) {
+  constructor(props) {
     super(props);
-    this.state = {
-      logged: false,
-      message: ''
-    };
-
-    this.handleClickLogin = this.handleClickLogin.bind(this);
-    this.handleClickLogOut = this.handleClickLogOut.bind(this);
   }
-  handleClickLogin(event) {
+
+  handleClick = (attr) => {
+    this.setState({disable: true});
     const username = this.refs.username;
     const password = this.refs.password;
-    const creds = { username: username.value.trim(), password: password.value.trim() };
-    console.log(creds);
-    request.post('http://localhost:8080/auth/getToken/')
-      .send(creds)
-      .end((err, res) => {
-        if(!err) {
-          localStorage.setItem('id_token', res.body.token);
-          this.setState({
-            logged: true,
-            message: 'You are logged'
-          });
+    const creds = {username: username.value.trim(), password: password.value.trim()};
 
-        }
-        else {
-          this.setState({message: 'Wrong password or username'})
-        }
-      console.log(localStorage)
-    });
-  }
+    if (creds.username !== '' || creds.password !== '') {
+      if (attr) {
+        this.props.dispatch(authUser(creds));
+      } else {
+        this.props.dispatch(createNewUser(creds));
+      }
+    } else {
+      this.setState({disable: false, message: 'You need to write something'})
+    }
+  };
 
-  handleClickLogOut(event) {
-    localStorage.setItem('id_token', undefined);
-    this.setState({
-      logged: false,
-      message: ''
-    });
-    console.log(localStorage);
-  }
+  handleClickLogOut = () => {
+    this.props.dispatch(logout());
+  };
 
   render() {
-    const { errorMessage } = this.props;
-
-    if(this.state.logged === false) {
-      return (
-        <div className="wrap__content">
-          <span className="wrap__content-title">Authorization</span>
-
-          <div>
-            <input type='text' ref='username' className="form-control" placeholder='Username'/>
-            <input type='password' ref='password' className="form-control" placeholder='Password'/>
-            <button onClick={(event) => this.handleClickLogin(event)} className="btn btn-primary">
-              Login
-            </button>
-            <div>{this.state.message}</div>
-          </div>
-
-        </div>
-      )
-    }
-    else {
-      return(
+    const {isAuthenticated, message, isAuthenticating} = this.props.user;
+    return (
       <div className="wrap__content">
         <span className="wrap__content-title">Authorization</span>
-        <div>
-          <button onClick={(event) => this.handleClickLogOut(event)} className="btn btn-primary">
-            LogOut
-          </button>
-           {this.state.message}
+        <div className="wrap__content-selects">
+
+          { !isAuthenticated ? (
+            <div>
+              <input type='text' ref='username' placeholder='Username' maxLength='21'/>
+              <input type='password' ref='password' placeholder='Password' maxLength='21'/>
+              <button onClick={() => this.handleClick(true)} disabled={isAuthenticating}>
+                Login
+              </button>
+              <button onClick={() => this.handleClick(false)} disabled={isAuthenticating}>
+                Create user
+              </button>
+            </div>
+          ) : (
+            <button onClick={this.handleClickLogOut}>
+              LogOut
+            </button>
+          )}
+          <div>{message}</div>
         </div>
       </div>
-      )
-    }
+    )
   }
-
 }
+
+function mapStateToProps(state) {
+  return {
+    user: state.user
+  }
+}
+
+export default connect(mapStateToProps)(Authorization)

@@ -114,7 +114,7 @@
     "no-multiple-empty-lines": "warn",
     "no-new-object": "warn",
     "arrow-body-style": ["warn", "as-needed"],
-    "coma-dangle": "off"
+    "comma-dangle": "off"
   },
   "settings": {
     "react": {

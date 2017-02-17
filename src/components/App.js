@@ -4,32 +4,31 @@ import classNames  from 'classnames'
 import '../styles/main.css'
 
 export default class App extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
   }
 
-  render () {
+  render() {
     const { location: { pathname } } = this.props;
 
     return (
       <div className="wrap">
         <ul className="wrap__nav">
-          <li className={classNames({active: pathname.endsWith('Map')})}>
+          <li className={classNames({active: pathname.endsWith('map')})}>
             <Link to="map">
               Main Page
             </Link>
           </li>
-          <li className={classNames({active: pathname.endsWith('Authorization')})}>
+          <li className={classNames({active: pathname.endsWith('authorization')})}>
             <Link to="authorization">
               Authorization
             </Link>
           </li>
-          <li className={classNames({active: pathname.endsWith('Weather')})}>
-            <Link to="weather">
+          <li className={classNames({active: pathname.endsWith('aboutAuthor')})}>
+            <Link to="aboutAuthor">
               About Author
             </Link>
           </li>
-
         </ul>
         {this.props.children}
       </div>

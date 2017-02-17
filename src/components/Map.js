@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
+import { connect } from 'react-redux'
 import {withGoogleMap,GoogleMap,Marker,Circle,InfoWindow} from 'react-google-maps'
+const request = require('superagent');
 
 const geolocation = (
   navigator.geolocation ?
@@ -22,7 +24,7 @@ const StartedGoogleMap = withGoogleMap(props => (
     {props.center && (
       <InfoWindow position={props.center}>
         <div>{props.content}</div>
-        </InfoWindow>
+      </InfoWindow>
     )}
     {props.center && (
       <Circle
@@ -48,9 +50,8 @@ const StartedGoogleMap = withGoogleMap(props => (
   </GoogleMap>
 ));
 
-
-export default class Map extends Component {
-  constructor (props) {
+class Map extends Component {
+  constructor(props) {
     super(props);
 
     this.isUnmounted = false;
@@ -60,30 +61,8 @@ export default class Map extends Component {
       center: null,
       content: null,
       radius: 100,
-      markers: [{
-        position: {
-          lat: 46.4825,
-          lng: 30.7233
-        },
-        defaultAnimation: 2,
-      }]
+      markers: []
     };
-
-    this.request = {
-      location: null,
-      radius: '500',
-      type: null
-    };
-
-    this.handleMapLoad = this.handleMapLoad.bind(this);
-    this.handleMapClick = this.handleMapClick.bind(this);
-    this.handleMarkerRightClick = this.handleMarkerRightClick.bind(this);
-    this.zoomButtonIn = this.zoomButtonIn.bind(this);
-    this.zoomButtonOut = this.zoomButtonOut.bind(this);
-    this.schoolButton = this.schoolButton.bind(this);
-    this.pharmacyButton = this.pharmacyButton.bind(this);
-    this.restaurantButton = this.restaurantButton.bind(this);
-    this.callback = this.callback.bind(this);
   }
 
   componentDidMount() {
@@ -91,11 +70,6 @@ export default class Map extends Component {
       if (this.isUnmounted) {
         return;
       }
-
-      this.request.location = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
 
       this.setState({
         zoom: 16,
@@ -122,23 +96,19 @@ export default class Map extends Component {
   }
 
   componentWillUnmount() {
-    this.isUnmounted=true;
+    this.isUnmounted = true;
   }
 
-  handleMapLoad(map) {
+  handleMapLoad = (map) => {
     this._mapComponent = map;
-    //console.log(map);
     this.service = new google.maps.places.PlacesService(document.createElement('div'));
-    if (map) {
-      console.log(map.getZoom());
-    }
-  }
+  };
 
-  callback (results, status) {
-    const places =[];
-    if (status == google.maps.places.PlacesServiceStatus.OK) {
+  callback = (results, status) => {
+    const places = [];
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
       for (let i = 0; i < results.length; i++) {
-        places.push(      {
+        places.push({
           position: {
             lat: results[i].geometry.location.lat(),
             lng: results[i].geometry.location.lng()
@@ -149,15 +119,16 @@ export default class Map extends Component {
             scaledSize: new google.maps.Size(25, 25)
           }
         })
-
       }
       this.setState({
         markers: places
       });
+    } else {
+      alert('Nothing found')
     }
-  }
+  };
 
-  handleMapClick(event) {
+  handleMapClick = (event) => {
     const nextMarkers = [
       ...this.state.markers,
       {
@@ -168,79 +139,155 @@ export default class Map extends Component {
     this.setState({
       markers: nextMarkers
     });
+  };
 
-  }
-
-  handleMarkerRightClick(targetMarker) {
+  handleMarkerRightClick = (targetMarker) => {
     const nextMarkers = this.state.markers.filter(marker => marker !== targetMarker);
     this.setState({
       markers: nextMarkers
     });
-  }
+  };
 
-  zoomButtonOut() {
-    this.setState({
-      zoom: this.state.zoom - 2
-    });
-  }
+  setZoom = (attr) => {
+    if (attr) {
+      if (this.state.zoom <= 23) {
+        this.setState({
+          zoom: this.state.zoom + 2
+        });
+      } else {
+        alert('max zoom')
+      }
+    } else {
+      if (this.state.zoom >= 0) {
+        this.setState({
+          zoom: this.state.zoom - 2
+        });
+      } else {
+        alert('min zoom')
+      }
+    }
+  };
 
-  zoomButtonIn() {
-    this.setState({
-      zoom: this.state.zoom + 2
-    });
-  }
+  findButton = (attr) => {
+    const currentCenter = this._mapComponent.getCenter();
+    const request = {
+      location: {
+        lat: currentCenter.lat(),
+        lng: currentCenter.lng()
+      },
+      radius: '500',
+      type: attr
+    };
+    this.service.nearbySearch(request, this.callback);
+  };
 
-  pharmacyButton() {
-    this.request.type = ['pharmacy'];
-    this.service.nearbySearch(this.request, this.callback);
-  }
+  getMarkers = () => {
+    if (this.props.user.isAuthenticated) {
+      request.get('http://localhost:8080/markers/get')
+        .set('token', localStorage.token)
+        .end((err, res) => {
 
-  schoolButton() {
-    this.request.type = ['school'];
-    this.service.nearbySearch(this.request, this.callback);
-  }
+          if (err || !res.body.success) {
+            alert(res.body.message);
+          } else {
+            this.setState({markers: res.body.markers});
+            alert(res.body.message)
+          }
+        })
+    } else {
+      alert("You need to log in");
+    }
+  };
 
-  restaurantButton() {
-    this.request.type = ['restaurant'];
-    this.service.nearbySearch(this.request, this.callback);
-  }
+  saveMarkers = () => {
+    if (this.props.user.isAuthenticated) {
+      request.put('http://localhost:8080/markers/save')
+        .set('token', localStorage.token)
+        .send({markers: this.state.markers})
+        .end((err, res) => {
+          if (err || !res.body.success) {
+            alert(res.body.message);
+          } else {
+            alert(res.body.message);
+          }
+        });
+    } else {
+      alert('You need to log in');
+    }
+  };
+
+  removeMarkers = () => {
+    if (this.props.user.isAuthenticated) {
+      request.delete('http://localhost:8080/markers/delete')
+        .set('token', localStorage.token)
+        .end((err, res) => {
+          if (err || !res.body.success) {
+            alert(res.body.message);
+          } else {
+            this.setState({markers: []});
+            alert(res.body.message);
+          }
+        })
+    } else {
+      alert('You need to log in');
+    }
+  };
 
   render() {
     return (
-      <div className="wrap__content" style={{ height: `700px`,  width: `1000px` }}>
+      <div className="wrap__content" style={{ height: `500px`,  width: `1000px` }}>
         <span className="wrap__content-title">Map</span>
-        <button onClick={this.zoomButtonOut}>
-          Zoom out
-        </button>
-        <button onClick={this.zoomButtonIn}>
-          Zoom in
-        </button>
-        <button onClick={this.pharmacyButton}>
-          Near pharmacies
-        </button>
-        <button onClick={this.schoolButton}>
-          Near schools
-        </button>
-        <button onClick={this.restaurantButton}>
-          Near restaurants
-        </button>
+        <span className="wrap__content-selects">
+          <button onClick={() => this.setZoom(false)}>
+            Zoom out
+          </button>
+          <button onClick={() => this.setZoom(true)}>
+            Zoom in
+          </button>
+          <button onClick={() => this.findButton('pharmacy')}>
+            Near pharmacies
+          </button>
+          <button onClick={() => this.findButton('school')}>
+            Near schools
+          </button>
+          <button onClick={() => this.findButton('restaurant')}>
+            Near restaurants
+          </button>
+          <button onClick={this.getMarkers}>
+            Get you markers
+          </button>
+          <button onClick={this.saveMarkers}>
+            Save you markers
+          </button>
+          <button onClick={this.removeMarkers}>
+            Delete you markers
+          </button>
+        </span>
         <StartedGoogleMap
           containerElement={
-            <div style={{height: '100%'}} />
+            <div style={{ height: '100%' }} />
           }
           mapElement={
-            <div style={{height: '100%'}} />
+            <div style={{ height: '100%' }} />
           }
           zoom={this.state.zoom}
           center={this.state.center}
           content={this.state.content}
           radius={this.state.radius}
+          markers={this.state.markers}
           onMapLoad={this.handleMapLoad}
           onMapClick={this.handleMapClick}
-          markers={this.state.markers}
           onMarkerRightClick={this.handleMarkerRightClick}
         />
       </div>
     );
   }
 }
+
+function mapStateToProps(state) {
+  return {
+    user: state.user
+  }
+}
+
+export default connect(mapStateToProps)(Map)

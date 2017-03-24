@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { authUser, createNewUser, logout} from '../actions'
-const request = require('superagent');
 
 class Authorization extends Component {
 
@@ -10,19 +9,18 @@ class Authorization extends Component {
   }
 
   handleClick = (attr) => {
-    this.setState({disable: true});
     const username = this.refs.username;
     const password = this.refs.password;
     const creds = {username: username.value.trim(), password: password.value.trim()};
 
-    if (creds.username !== '' || creds.password !== '') {
+    if (creds.username || creds.password) {
       if (attr) {
         this.props.dispatch(authUser(creds));
       } else {
         this.props.dispatch(createNewUser(creds));
       }
     } else {
-      this.setState({disable: false, message: 'You need to write something'})
+      alert('You need to write something');
     }
   };
 

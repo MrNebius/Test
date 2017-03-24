@@ -1,12 +1,21 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router'
+import { connect } from 'react-redux'
+import { verifyUser } from '../actions'
 import classNames  from 'classnames'
 import '../styles/main.css'
 
-export default class App extends Component {
+class App extends Component {
   constructor(props) {
     super(props)
   }
+
+  componentDidMount () {
+    if(localStorage.token) {
+      this.props.dispatch(verifyUser())
+    }
+  }
+
 
   render() {
     const { location: { pathname } } = this.props;
@@ -35,3 +44,11 @@ export default class App extends Component {
     )
   }
 }
+
+function mapStateToProps(state) {
+  return {
+    user: state.user
+  }
+}
+
+export default connect(mapStateToProps)(App)

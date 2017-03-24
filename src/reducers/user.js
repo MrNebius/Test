@@ -1,9 +1,9 @@
 import {USER_REQUEST, USER_SUCCESS, LOGOUT_USER, USER_FAILURE} from '../constants/constants.js'
 
 const initialState = {
-  isAuthenticated: localStorage.token ? true : false,
+  isAuthenticated: false,
   isAuthenticating: false,
-  message:localStorage.token ? 'You are logged' : ''
+  message:''
 };
 
 export default function updateUser(state = initialState, action) {

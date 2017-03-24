@@ -60,3 +60,18 @@ export function logout() {
     type: LOGOUT_USER
   }
 }
+
+export function verifyUser() {
+  return function (dispatch) {
+    return request.get('http://localhost:8080/auth')
+      .set('token', localStorage.token)
+      .end((err, res) => {
+        if (err) {
+        } else if (!err && res.body.success) {
+          dispatch(authSuccess(res.body.token, 'You are logged'))
+        } else if (!res.body.success) {
+          dispatch(logout())
+        }
+      });
+  }
+}

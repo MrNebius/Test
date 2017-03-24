@@ -57,6 +57,7 @@ class Map extends Component {
     this.isUnmounted = false;
 
     this.state = {
+      request: false,
       zoom: null,
       center: null,
       content: null,
@@ -66,7 +67,7 @@ class Map extends Component {
   }
 
   componentDidMount() {
-    geolocation.getCurrentPosition((position) => {
+    geolocation.getCurrentPosition(position => {
       if (this.isUnmounted) {
         return;
       }
@@ -80,7 +81,7 @@ class Map extends Component {
         content: 'I found you!'
       });
 
-    }, (reason) => {
+    }, reason => {
       if (this.isUnmounted) {
         return;
       }
@@ -99,7 +100,7 @@ class Map extends Component {
     this.isUnmounted = true;
   }
 
-  handleMapLoad = (map) => {
+  handleMapLoad = map => {
     this._mapComponent = map;
     this.service = new google.maps.places.PlacesService(document.createElement('div'));
   };
@@ -120,15 +121,17 @@ class Map extends Component {
           }
         })
       }
+     // this.clearMarkers();
       this.setState({
         markers: places
       });
     } else {
       alert('Nothing found')
     }
+    this.isRequesting();
   };
 
-  handleMapClick = (event) => {
+  handleMapClick = event => {
     const nextMarkers = [
       ...this.state.markers,
       {
@@ -141,34 +144,33 @@ class Map extends Component {
     });
   };
 
-  handleMarkerRightClick = (targetMarker) => {
+  handleMarkerRightClick = targetMarker => {
     const nextMarkers = this.state.markers.filter(marker => marker !== targetMarker);
     this.setState({
       markers: nextMarkers
     });
   };
 
-  setZoom = (attr) => {
+  setZoom = attr => {
+    const newState = {};
     if (attr) {
       if (this.state.zoom <= 23) {
-        this.setState({
-          zoom: this.state.zoom + 2
-        });
+        newState.zoom = this.state.zoom + 2;
       } else {
         alert('max zoom')
       }
     } else {
       if (this.state.zoom >= 0) {
-        this.setState({
-          zoom: this.state.zoom - 2
-        });
+        newState.zoom = this.state.zoom - 2;
       } else {
         alert('min zoom')
       }
     }
+    this.setState(newState)
   };
 
-  findButton = (attr) => {
+  findButton = placeType => {
+    this.isRequesting();
     const currentCenter = this._mapComponent.getCenter();
     const request = {
       location: {
@@ -176,64 +178,66 @@ class Map extends Component {
         lng: currentCenter.lng()
       },
       radius: '500',
-      type: attr
+      type: placeType
     };
     this.service.nearbySearch(request, this.callback);
   };
 
   getMarkers = () => {
-    if (this.props.user.isAuthenticated) {
-      request.get('http://localhost:8080/markers/get')
+    this.isRequesting();
+      request.get('http://localhost:8080/markers')
         .set('token', localStorage.token)
         .end((err, res) => {
-
-          if (err || !res.body.success) {
-            alert(res.body.message);
-          } else {
+          if (!err) {
             this.setState({markers: res.body.markers});
             alert(res.body.message)
+          } else {
+            alert('Error');
           }
-        })
-    } else {
-      alert("You need to log in");
-    }
+          this.isRequesting();
+        });
   };
 
   saveMarkers = () => {
-    if (this.props.user.isAuthenticated) {
-      request.put('http://localhost:8080/markers/save')
-        .set('token', localStorage.token)
-        .send({markers: this.state.markers})
-        .end((err, res) => {
-          if (err || !res.body.success) {
-            alert(res.body.message);
-          } else {
-            alert(res.body.message);
-          }
-        });
-    } else {
-      alert('You need to log in');
-    }
+    this.isRequesting();
+    request.put('http://localhost:8080/markers')
+      .set('token', localStorage.token)
+      .send({markers: this.state.markers})
+      .end((err, res) => {
+        if (!err) {
+          alert(res.body.message);
+        } else {
+          alert('Error');
+        }
+        this.isRequesting();
+      });
   };
 
   removeMarkers = () => {
-    if (this.props.user.isAuthenticated) {
-      request.delete('http://localhost:8080/markers/delete')
-        .set('token', localStorage.token)
-        .end((err, res) => {
-          if (err || !res.body.success) {
-            alert(res.body.message);
-          } else {
-            this.setState({markers: []});
-            alert(res.body.message);
-          }
-        })
-    } else {
-      alert('You need to log in');
-    }
+    this.isRequesting();
+    request.delete('http://localhost:8080/markers')
+      .set('token', localStorage.token)
+      .end((err, res) => {
+        if (!err) {
+          this.setState({markers: []});
+          alert(res.body.message);
+        } else {
+          alert('Error');
+        }
+        this.isRequesting();
+      });
+  };
+
+  isRequesting = () => {
+    this.setState({request: !this.state.request})
+  };
+
+  clearMarkers = () => {
+    this.setState({markers: []})
   };
 
   render() {
+    const isAuthenticated = this.props.user.isAuthenticated;
     return (
       <div className="wrap__content" style={{ height: `500px`,  width: `1000px` }}>
         <span className="wrap__content-title">Map</span>
@@ -244,22 +248,23 @@ class Map extends Component {
           <button onClick={() => this.setZoom(true)}>
             Zoom in
           </button>
-          <button onClick={() => this.findButton('pharmacy')}>
+          <button onClick={() => this.findButton('pharmacy')} disabled={this.state.request}>
             Near pharmacies
           </button>
-          <button onClick={() => this.findButton('school')}>
+          <button onClick={() => this.findButton('school')} disabled={this.state.request}>
             Near schools
           </button>
-          <button onClick={() => this.findButton('restaurant')}>
+          <button onClick={() => this.findButton('restaurant')} disabled={this.state.request}>
             Near restaurants
           </button>
-          <button onClick={this.getMarkers}>
+          <button onClick={this.getMarkers} disabled={this.state.request || !isAuthenticated}>
             Get you markers
           </button>
-          <button onClick={this.saveMarkers}>
+          <button onClick={this.saveMarkers}
+                  disabled={this.state.request || !this.state.markers.length || !isAuthenticated}>
             Save you markers
           </button>
-          <button onClick={this.removeMarkers}>
+          <button onClick={this.removeMarkers} disabled={this.state.request || !isAuthenticated}>
             Delete you markers
           </button>
         </span>

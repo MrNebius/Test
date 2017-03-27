@@ -8,7 +8,7 @@ class Authorization extends Component {
     super(props);
   }
 
-  handleClick = (attr) => {
+  handleClick = attr => {
     const username = this.refs.username;
     const password = this.refs.password;
     const creds = {username: username.value.trim(), password: password.value.trim()};

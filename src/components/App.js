@@ -16,7 +16,6 @@ class App extends Component {
     }
   }
 
-
   render() {
     const { location: { pathname } } = this.props;
 

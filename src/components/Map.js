@@ -232,10 +232,6 @@ class Map extends Component {
     this.setState({request: !this.state.request})
   };
 
-  clearMarkers = () => {
-    this.setState({markers: []})
-  };
-
   render() {
     const isAuthenticated = this.props.user.isAuthenticated;
     return (
